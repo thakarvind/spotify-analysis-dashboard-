@@ -15,9 +15,7 @@ End-to-end data analysis of the Spotify Top 100 Tracks from 2018. The raw datase
 
 ## Dashboard Preview
 
-![Spotify Dashboard Preview](assets/spotify_dashboard_preview.png)
-
-> Download `spotify_dashboard.html` and open in any browser to view the fully interactive dashboard.
+[spotify_dashboard.pdf](https://github.com/user-attachments/files/26136286/spotify_dashboard.pdf)
 
 ---
 
