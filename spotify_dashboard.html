@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Spotify 2018 — Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:     #0e0e0f;
+  --s1:     #141416;
+  --s2:     #1a1a1d;
+  --s3:     #222226;
+  --brd:    #2a2a2f;
+  --brd2:   #333338;
+  --grn:    #1ed760;
+  --grn2:   #17b34e;
+  --wht:    #f4f4f5;
+  --muted:  #7a7a85;
+  --dim:    #3d3d45;
+  --r:      10px;
+}
+html{scroll-behavior:smooth;}
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--bg);
+  color:var(--wht);
+  font-size:13px;
+  min-height:100vh;
+}
+
+/* ══ TOP HEADER ══════════════════════════════════ */
+.header{
+  background:var(--s1);
+  border-bottom:1px solid var(--brd);
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  padding:0 36px;
+  height:64px;
+}
+.h-left{display:flex;align-items:center;gap:18px;}
+.spotify-mark{
+  display:flex;align-items:center;gap:10px;
+  padding:6px 14px 6px 8px;
+  background:#191919;
+  border:1px solid #2a2a2f;
+  border-radius:8px;
+}
+.spotify-mark svg{width:28px;height:28px;}
+.spotify-mark span{
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:13px;font-weight:700;
+  letter-spacing:2px;color:var(--grn);
+}
+.h-divider{width:1px;height:28px;background:var(--brd);}
+.h-title{
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:15px;font-weight:700;
+  color:var(--wht);letter-spacing:-0.3px;
+}
+.h-sub{font-size:11px;color:var(--muted);margin-top:2px;font-weight:300;}
+.h-right{display:flex;gap:8px;}
+.chip{
+  font-size:10px;font-weight:500;
+  padding:4px 12px;border-radius:20px;
+  border:1px solid var(--brd2);
+  color:var(--muted);background:var(--s2);
+  letter-spacing:0.3px;
+}
+.chip-grn{color:var(--grn);border-color:rgba(30,215,96,.25);background:rgba(30,215,96,.07);}
+
+/* ══ SQL BANNER ══════════════════════════════════ */
+
+
+.sql-banner code{
+  font-family:'Courier New',Courier,monospace;
+  color:var(--grn);font-size:10px;
+}
+
+/* ══ NAV PILLS ════════════════════════════════════ */
+.nav{
+  display:flex;gap:4px;
+  padding:18px 36px 0;
+  border-bottom:1px solid var(--brd);
+}
+.nav-btn{
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:12px;font-weight:500;
+  padding:8px 18px;border-radius:8px 8px 0 0;
+  cursor:pointer;color:var(--muted);
+  border:1px solid transparent;border-bottom:none;
+  background:transparent;transition:all .2s;
+  position:relative;top:1px;
+}
+.nav-btn:hover{color:var(--wht);background:var(--s2);}
+.nav-btn.on{
+  color:var(--wht);background:var(--s2);
+  border-color:var(--brd);
+  border-bottom:2px solid var(--grn);
+}
+
+/* ══ PAGE WRAPPER ════════════════════════════════ */
+.pages{padding:24px 36px 60px;}
+.page{display:none;}
+.page.on{display:block;}
+
+/* ══ SECTION LABEL ═══════════════════════════════ */
+.sec{
+  font-family:'Courier New',Courier,monospace;
+  font-size:9px;font-weight:500;
+  text-transform:uppercase;letter-spacing:2px;
+  color:var(--dim);
+  display:flex;align-items:center;gap:10px;
+  margin:28px 0 14px;
+}
+.sec::after{content:'';flex:1;height:1px;background:var(--brd);}
+
+/* ══ KPI STRIP (4 cards max) ═════════════════════ */
+.kpi-row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:20px;
+}
+.kpi{
+  background:var(--s2);
+  border:1px solid var(--brd);
+  border-radius:var(--r);
+  padding:18px 20px;
+  position:relative;
+  overflow:hidden;
+  transition:border-color .2s;
+}
+.kpi::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--accent,var(--grn));
+}
+.kpi:hover{border-color:var(--brd2);}
+.kpi-l{
+  font-size:10px;font-weight:500;
+  text-transform:uppercase;letter-spacing:.8px;
+  color:var(--muted);margin-bottom:10px;
+}
+.kpi-v{
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:28px;font-weight:700;
+  color:var(--wht);line-height:1;
+  margin-bottom:6px;
+}
+.kpi-s{font-size:11px;color:var(--dim);font-weight:300;}
+
+/* ══ CARD ════════════════════════════════════════ */
+.card{
+  background:var(--s2);
+  border:1px solid var(--brd);
+  border-radius:var(--r);
+  padding:20px;
+}
+.card-h{margin-bottom:16px;}
+.card-t{
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:13px;font-weight:700;
+  color:var(--wht);margin-bottom:3px;
+}
+.card-s{font-size:11px;color:var(--muted);font-weight:300;}
+
+/* ══ GRIDS ════════════════════════════════════════ */
+.g2 {display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3 {display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.g31{display:grid;grid-template-columns:3fr 2fr;gap:14px;}
+.g13{display:grid;grid-template-columns:2fr 3fr;gap:14px;}
+
+/* ══ TABLE ════════════════════════════════════════ */
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{
+  font-size:9px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.8px;color:var(--muted);
+  padding:8px 10px;border-bottom:1px solid var(--brd);
+  text-align:left;font-family:'Courier New',Courier,monospace;
+}
+.tbl th.r{text-align:right;}
+.tbl td{
+  padding:9px 10px;border-bottom:1px solid #1c1c1f;
+  color:var(--muted);vertical-align:middle;
+}
+.tbl tr:hover td{background:rgba(255,255,255,.02);}
+.tbl tr:last-child td{border:none;}
+.td-name{color:var(--wht);font-weight:500;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.td-artist{color:var(--grn);font-size:11px;}
+.td-num{text-align:right;font-family:'Courier New',Courier,monospace;font-weight:500;}
+.td-rank{color:var(--dim);font-family:'Courier New',Courier,monospace;font-size:11px;}
+
+/* ══ LEGEND ══════════════════════════════════════ */
+.leg{display:flex;flex-direction:column;gap:8px;}
+.leg-r{display:flex;align-items:center;gap:8px;}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.leg-l{font-size:11px;color:var(--muted);flex:1;}
+.leg-v{font-family:'Courier New',Courier,monospace;font-size:11px;color:var(--wht);}
+
+/* ══ PROGRESS BARS ════════════════════════════════ */
+.pbar{display:flex;flex-direction:column;gap:11px;}
+.pr{display:flex;flex-direction:column;gap:5px;}
+.pr-h{display:flex;justify-content:space-between;font-size:11px;}
+.pr-l{color:var(--muted);}
+.pr-v{font-family:'Courier New',Courier,monospace;color:var(--wht);font-weight:500;}
+.pr-bg{height:5px;background:var(--brd);border-radius:3px;overflow:hidden;}
+.pr-fill{height:5px;border-radius:3px;transition:width .6s ease;}
+
+/* ══ FEATURE GAUGES ══════════════════════════════ */
+.gauge-g{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.gauge-item{display:flex;flex-direction:column;gap:6px;}
+.gauge-lbl{display:flex;justify-content:space-between;font-size:11px;}
+.gauge-name{color:var(--muted);}
+.gauge-val{font-family:'Courier New',Courier,monospace;color:var(--wht);font-weight:500;}
+.gauge-bg{height:8px;background:var(--brd);border-radius:4px;overflow:hidden;}
+.gauge-fill{height:8px;border-radius:4px;}
+
+/* ══ FOOTER ══════════════════════════════════════ */
+footer{
+  text-align:center;padding:20px;
+  font-size:11px;color:var(--dim);
+  border-top:1px solid var(--brd);
+  font-weight:300;
+}
+footer strong{color:var(--muted);}
+footer a{color:var(--grn);text-decoration:none;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="h-left">
+    <div class="spotify-mark">
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="11" fill="#1ed760"/>
+        <path d="M7.5 15.2c2.6-1.6 5.9-2 8.7-.7" stroke="#0e0e0f" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M6.5 11.8c3.3-2 7.3-2.5 10.7-.9" stroke="#0e0e0f" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M5.5 8.3c4-2.4 8.7-2.9 12.8-1.1" stroke="#0e0e0f" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span>SPOTIFY</span>
+    </div>
+    <div class="h-divider"></div>
+    <div>
+      <div class="h-title">Top 100 Tracks — 2018 Analytics</div>
+      <div class="h-sub">100 tracks · 70 artists · 16 audio features</div>
+    </div>
+  </div>
+  <div class="h-right">
+    <span class="chip">0 Nulls · 0 Duplicates</span>
+    <span class="chip chip-grn">100 Clean Records</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-btn on"  onclick="show('overview',this)">Overview</div>
+  <div class="nav-btn"     onclick="show('tracks',this)">Top Tracks</div>
+  <div class="nav-btn"     onclick="show('artists',this)">Artists</div>
+  <div class="nav-btn"     onclick="show('features',this)">Audio Features</div>
+</div>
+
+<div class="pages">
+
+<!-- ══════════════════════════════════ OVERVIEW ══ -->
+<div class="page on" id="page-overview">
+
+  <div class="sec">Overview · Key Metrics</div>
+  <div class="kpi-row">
+    <div class="kpi" style="--accent:#1ed760;">
+      <div class="kpi-l">Total Tracks</div>
+      <div class="kpi-v">100</div>
+      <div class="kpi-s">Spotify Top 100 · 2018</div>
+    </div>
+    <div class="kpi" style="--accent:#60a5fa;">
+      <div class="kpi-l">Unique Artists</div>
+      <div class="kpi-v">70</div>
+      <div class="kpi-s">Across all 100 tracks</div>
+    </div>
+    <div class="kpi" style="--accent:#fb923c;">
+      <div class="kpi-l">Avg Danceability</div>
+      <div class="kpi-v">0.716</div>
+      <div class="kpi-s">Out of 1.0</div>
+    </div>
+    <div class="kpi" style="--accent:#f472b6;">
+      <div class="kpi-l">Avg Tempo</div>
+      <div class="kpi-v">119.9</div>
+      <div class="kpi-s">Beats per minute</div>
+    </div>
+  </div>
+
+  <div class="g31" style="margin-bottom:14px;">
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">Ride Volume — Audio Profile</div>
+        <div class="card-s">Average of all 6 core audio features across 100 tracks</div>
+      </div>
+      <div style="position:relative;height:220px;"><canvas id="cRadar"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">Major vs Minor</div>
+        <div class="card-s">Mode split across top 100</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:18px;margin-top:6px;">
+        <div style="position:relative;height:150px;width:150px;flex-shrink:0;"><canvas id="cMode"></canvas></div>
+        <div class="leg">
+          <div class="leg-r"><div class="leg-dot" style="background:#1ed760;"></div><span class="leg-l">Major</span><span class="leg-v">59</span></div>
+          <div class="leg-r"><div class="leg-dot" style="background:#60a5fa;"></div><span class="leg-l">Minor</span><span class="leg-v">41</span></div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--brd);">
+            <div class="leg-r" style="margin-bottom:5px;"><span class="leg-l">Major avg dance</span><span class="leg-v">0.710</span></div>
+            <div class="leg-r" style="margin-bottom:5px;"><span class="leg-l">Minor avg dance</span><span class="leg-v">0.726</span></div>
+            <div class="leg-r" style="margin-bottom:5px;"><span class="leg-l">Major avg energy</span><span class="leg-v">0.645</span></div>
+            <div class="leg-r"><span class="leg-l">Minor avg energy</span><span class="leg-v">0.679</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-h"><div class="card-t">Tempo Distribution</div><div class="card-s">Tracks grouped by BPM range</div></div>
+      <div style="position:relative;height:170px;"><canvas id="cTempo"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">Musical Key Distribution</div><div class="card-s">Track count per key — C# dominates</div></div>
+      <div style="position:relative;height:170px;"><canvas id="cKey"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ TOP TRACKS ══ -->
+<div class="page" id="page-tracks">
+
+  <div class="sec">Top Tracks · Rankings</div>
+  <div class="kpi-row">
+    <div class="kpi" style="--accent:#1ed760;">
+      <div class="kpi-l">#1 Track</div>
+      <div class="kpi-v" style="font-size:16px;line-height:1.2;">God's Plan</div>
+      <div class="kpi-s">Drake · Dance 0.754</div>
+    </div>
+    <div class="kpi" style="--accent:#fb923c;">
+      <div class="kpi-l">Most Danceable</div>
+      <div class="kpi-v" style="font-size:16px;line-height:1.2;">Yes Indeed</div>
+      <div class="kpi-s">Lil Baby · 0.964</div>
+    </div>
+    <div class="kpi" style="--accent:#f472b6;">
+      <div class="kpi-l">Happiest Song</div>
+      <div class="kpi-v" style="font-size:16px;line-height:1.2;">Shape of You</div>
+      <div class="kpi-s">Ed Sheeran · Valence 0.931</div>
+    </div>
+    <div class="kpi" style="--accent:#34d399;">
+      <div class="kpi-l">Most Acoustic</div>
+      <div class="kpi-v" style="font-size:16px;line-height:1.2;">lovely</div>
+      <div class="kpi-s">Billie Eilish · 0.934</div>
+    </div>
+  </div>
+
+  <div class="g31" style="margin-bottom:14px;">
+    <div class="card">
+      <div class="card-h"><div class="card-t">Top 10 — Danceability · Energy · Valence</div><div class="card-s">Three-way comparison of the chart-toppers</div></div>
+      <div style="position:relative;height:240px;"><canvas id="cTop10"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">Top 10 Tracks</div><div class="card-s">Ranked #1 – #10</div></div>
+      <table class="tbl">
+        <thead><tr><th>#</th><th>Track</th><th>Artist</th><th class="r">Dance</th></tr></thead>
+        <tbody>
+          <tr><td class="td-rank">01</td><td class="td-name">God's Plan</td><td class="td-artist">Drake</td><td class="td-num" style="color:var(--grn);">0.754</td></tr>
+          <tr><td class="td-rank">02</td><td class="td-name">SAD!</td><td class="td-artist">XXXTENTACION</td><td class="td-num" style="color:var(--grn);">0.740</td></tr>
+          <tr><td class="td-rank">03</td><td class="td-name">rockstar</td><td class="td-artist">Post Malone</td><td class="td-num" style="color:var(--grn);">0.587</td></tr>
+          <tr><td class="td-rank">04</td><td class="td-name">Psycho</td><td class="td-artist">Post Malone</td><td class="td-num" style="color:var(--grn);">0.739</td></tr>
+          <tr><td class="td-rank">05</td><td class="td-name">In My Feelings</td><td class="td-artist">Drake</td><td class="td-num" style="color:var(--grn);">0.835</td></tr>
+          <tr><td class="td-rank">06</td><td class="td-name">Better Now</td><td class="td-artist">Post Malone</td><td class="td-num" style="color:var(--grn);">0.680</td></tr>
+          <tr><td class="td-rank">07</td><td class="td-name">I Like It</td><td class="td-artist">Cardi B</td><td class="td-num" style="color:var(--grn);">0.816</td></tr>
+          <tr><td class="td-rank">08</td><td class="td-name">One Kiss</td><td class="td-artist">Calvin Harris</td><td class="td-num" style="color:var(--grn);">0.791</td></tr>
+          <tr><td class="td-rank">09</td><td class="td-name">IDGAF</td><td class="td-artist">Dua Lipa</td><td class="td-num" style="color:var(--grn);">0.836</td></tr>
+          <tr><td class="td-rank">10</td><td class="td-name">FRIENDS</td><td class="td-artist">Marshmello</td><td class="td-num" style="color:var(--grn);">0.626</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-h"><div class="card-t">Most Acoustic Tracks</div><div class="card-s">Highest acousticness score</div></div>
+      <div class="pbar">
+        <div class="pr"><div class="pr-h"><span class="pr-l">lovely — Billie Eilish</span><span class="pr-v">0.934</span></div><div class="pr-bg"><div class="pr-fill" style="width:100%;background:#34d399;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">changes — XXXTENTACION</span><span class="pr-v">0.883</span></div><div class="pr-bg"><div class="pr-fill" style="width:94.5%;background:#34d399;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">Everybody Dies — XXXTENTACION</span><span class="pr-v">0.847</span></div><div class="pr-bg"><div class="pr-fill" style="width:90.7%;background:#34d399;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">Perfect Duet — Ed Sheeran</span><span class="pr-v">0.779</span></div><div class="pr-bg"><div class="pr-fill" style="width:83.4%;background:#34d399;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">Be Alright — Dean Lewis</span><span class="pr-v">0.697</span></div><div class="pr-bg"><div class="pr-fill" style="width:74.6%;background:#34d399;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">Too Good At Goodbyes — Sam Smith</span><span class="pr-v">0.652</span></div><div class="pr-bg"><div class="pr-fill" style="width:69.8%;background:#34d399;"></div></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">Most Speech-Heavy Tracks</div><div class="card-s">Speechiness — identifies rap / spoken word</div></div>
+      <div class="pbar">
+        <div class="pr"><div class="pr-h"><span class="pr-l">Yes Indeed — Lil Baby</span><span class="pr-v">0.530</span></div><div class="pr-bg"><div class="pr-fill" style="width:100%;background:#a78bfa;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">River — Eminem</span><span class="pr-v">0.516</span></div><div class="pr-bg"><div class="pr-fill" style="width:97.4%;background:#a78bfa;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">Youngblood — 5SOS</span><span class="pr-v">0.463</span></div><div class="pr-bg"><div class="pr-fill" style="width:87.4%;background:#a78bfa;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">FEFE — 6ix9ine</span><span class="pr-v">0.412</span></div><div class="pr-bg"><div class="pr-fill" style="width:77.7%;background:#a78bfa;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">No Brainer — DJ Khaled</span><span class="pr-v">0.342</span></div><div class="pr-bg"><div class="pr-fill" style="width:64.5%;background:#a78bfa;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">Eastside — benny blanco</span><span class="pr-v">0.321</span></div><div class="pr-bg"><div class="pr-fill" style="width:60.6%;background:#a78bfa;"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ ARTISTS ══ -->
+<div class="page" id="page-artists">
+
+  <div class="sec">Artists · Frequency & Features</div>
+  <div class="kpi-row">
+    <div class="kpi" style="--accent:#1ed760;">
+      <div class="kpi-l">Most Charted</div>
+      <div class="kpi-v" style="font-size:16px;">XXXTENTACION</div>
+      <div class="kpi-s">6 tracks in Top 100</div>
+    </div>
+    <div class="kpi" style="--accent:#60a5fa;">
+      <div class="kpi-l">Also 6 Tracks</div>
+      <div class="kpi-v" style="font-size:16px;">Post Malone</div>
+      <div class="kpi-s">Tied for most placements</div>
+    </div>
+    <div class="kpi" style="--accent:#fb923c;">
+      <div class="kpi-l">4 Tracks</div>
+      <div class="kpi-v" style="font-size:16px;">Drake</div>
+      <div class="kpi-s">Avg dance: 0.772</div>
+    </div>
+    <div class="kpi" style="--accent:#f472b6;">
+      <div class="kpi-l">Unique Artists</div>
+      <div class="kpi-v">70</div>
+      <div class="kpi-s">Out of 100 tracks</div>
+    </div>
+  </div>
+
+  <div class="g2" style="margin-bottom:14px;">
+    <div class="card">
+      <div class="card-h"><div class="card-t">Track Count by Artist</div><div class="card-s">Artists with 2 or more tracks in Top 100</div></div>
+      <div style="position:relative;height:260px;"><canvas id="cArtCount"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">Avg Danceability by Artist</div><div class="card-s">Which artist's songs score highest on dance?</div></div>
+      <div style="position:relative;height:260px;"><canvas id="cArtDance"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><div class="card-t">Artist Audio Feature Comparison — Danceability · Energy · Valence</div><div class="card-s">Top 8 artists (2+ tracks), averaged across their charted tracks</div></div>
+    <div style="position:relative;height:200px;"><canvas id="cArtMulti"></canvas></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ FEATURES ══ -->
+<div class="page" id="page-features">
+
+  <div class="sec">Audio Features · Deep Dive</div>
+  <div class="kpi-row">
+    <div class="kpi" style="--accent:#1ed760;">
+      <div class="kpi-l">Avg Energy</div>
+      <div class="kpi-v">0.659</div>
+      <div class="kpi-s">Max: 0.909</div>
+    </div>
+    <div class="kpi" style="--accent:#f472b6;">
+      <div class="kpi-l">Avg Valence</div>
+      <div class="kpi-v">0.484</div>
+      <div class="kpi-s">Mood score 0–1</div>
+    </div>
+    <div class="kpi" style="--accent:#34d399;">
+      <div class="kpi-l">Avg Acousticness</div>
+      <div class="kpi-v">0.196</div>
+      <div class="kpi-s">Max: 0.934</div>
+    </div>
+    <div class="kpi" style="--accent:#60a5fa;">
+      <div class="kpi-l">Avg Duration</div>
+      <div class="kpi-v">3.42 min</div>
+      <div class="kpi-s">Longest: 6.97 min</div>
+    </div>
+  </div>
+
+  <div class="g13" style="margin-bottom:14px;">
+    <div class="card">
+      <div class="card-h"><div class="card-t">Feature Score Averages</div><div class="card-s">Where does the typical top-100 track land?</div></div>
+      <div class="gauge-g">
+        <div class="gauge-item"><div class="gauge-lbl"><span class="gauge-name">Danceability</span><span class="gauge-val">0.716</span></div><div class="gauge-bg"><div class="gauge-fill" style="width:71.6%;background:#1ed760;"></div></div></div>
+        <div class="gauge-item"><div class="gauge-lbl"><span class="gauge-name">Energy</span><span class="gauge-val">0.659</span></div><div class="gauge-bg"><div class="gauge-fill" style="width:65.9%;background:#fb923c;"></div></div></div>
+        <div class="gauge-item"><div class="gauge-lbl"><span class="gauge-name">Valence</span><span class="gauge-val">0.484</span></div><div class="gauge-bg"><div class="gauge-fill" style="width:48.4%;background:#f472b6;"></div></div></div>
+        <div class="gauge-item"><div class="gauge-lbl"><span class="gauge-name">Acousticness</span><span class="gauge-val">0.196</span></div><div class="gauge-bg"><div class="gauge-fill" style="width:19.6%;background:#34d399;"></div></div></div>
+        <div class="gauge-item"><div class="gauge-lbl"><span class="gauge-name">Speechiness</span><span class="gauge-val">0.116</span></div><div class="gauge-bg"><div class="gauge-fill" style="width:11.6%;background:#a78bfa;"></div></div></div>
+        <div class="gauge-item"><div class="gauge-lbl"><span class="gauge-name">Liveness</span><span class="gauge-val">0.158</span></div><div class="gauge-bg"><div class="gauge-fill" style="width:15.8%;background:#60a5fa;"></div></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">Danceability · Energy · Valence — All 100 Tracks</div><div class="card-s">Grouped bar showing spread across the full dataset</div></div>
+      <div style="position:relative;height:240px;"><canvas id="cAllFeatures"></canvas></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-h"><div class="card-t">Top 10 Happiest Songs</div><div class="card-s">Valence — positivity score 0 to 1</div></div>
+      <div class="pbar">
+        <div class="pr"><div class="pr-h"><span class="pr-l">Shape of You — Ed Sheeran</span><span class="pr-v">0.931</span></div><div class="pr-bg"><div class="pr-fill" style="width:100%;background:#f472b6;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">Finesse — Bruno Mars</span><span class="pr-v">0.926</span></div><div class="pr-bg"><div class="pr-fill" style="width:99.5%;background:#f472b6;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">Bella — Wolfine</span><span class="pr-v">0.844</span></div><div class="pr-bg"><div class="pr-fill" style="width:90.7%;background:#f472b6;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">Déjala que vuelva — Piso 21</span><span class="pr-v">0.839</span></div><div class="pr-bg"><div class="pr-fill" style="width:90.1%;background:#f472b6;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">Criminal — Natti Natasha</span><span class="pr-v">0.839</span></div><div class="pr-bg"><div class="pr-fill" style="width:90.1%;background:#f472b6;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">Dura — Daddy Yankee</span><span class="pr-v">0.828</span></div><div class="pr-bg"><div class="pr-fill" style="width:88.9%;background:#f472b6;"></div></div></div>
+        <div class="pr"><div class="pr-h"><span class="pr-l">Sin Pijama — Becky G</span><span class="pr-v">0.820</span></div><div class="pr-bg"><div class="pr-fill" style="width:88.1%;background:#f472b6;"></div></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">Danceability vs Energy — Top 15</div><div class="card-s">Scatter: dance on X, energy on Y, bubble = valence</div></div>
+      <div style="position:relative;height:250px;"><canvas id="cScatter"></canvas></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /pages -->
+
+<footer>
+  Built by <strong>THAK ARAVIND</strong> &nbsp;·&nbsp;
+  
+  <a href="https://github.com/thakarvind" target="_blank">github.com/thakarvind</a>
+  &nbsp;·&nbsp; Spotify Top 100 Tracks · 2018
+</footer>
+
+<script>
+// ── NAV ──────────────────────────────────────────
+function show(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('page-'+id).classList.add('on');
+  el.classList.add('on');
+}
+
+// ── CHART DEFAULTS ───────────────────────────────
+Chart.defaults.font.family = "Arial, Helvetica, sans-serif";
+Chart.defaults.color = '#7a7a85';
+Chart.defaults.font.size = 10;
+const GRID = {color:'rgba(255,255,255,0.04)',drawBorder:false};
+const NL   = {legend:{display:false}};
+
+// ── RADAR ────────────────────────────────────────
+new Chart('cRadar',{
+  type:'radar',
+  data:{
+    labels:['Danceability','Energy','Valence','Acousticness','Speechiness','Liveness'],
+    datasets:[{
+      label:'Avg',
+      data:[0.716,0.659,0.484,0.196,0.116,0.158],
+      borderColor:'#1ed760',
+      backgroundColor:'rgba(30,215,96,0.15)',
+      borderWidth:2,
+      pointBackgroundColor:'#1ed760',
+      pointRadius:5,
+      pointHoverRadius:7
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{r:{
+      min:0,max:1,
+      ticks:{display:false,stepSize:0.2},
+      grid:{color:'rgba(255,255,255,0.07)'},
+      pointLabels:{font:{size:11},color:'#7a7a85'}
+    }}
+  }
+});
+
+// ── MODE PIE ─────────────────────────────────────
+new Chart('cMode',{
+  type:'doughnut',
+  data:{
+    labels:['Major','Minor'],
+    datasets:[{
+      data:[59,41],
+      backgroundColor:['#1ed760','#60a5fa'],
+      borderWidth:0,hoverOffset:6
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    cutout:'64%',
+    plugins:{legend:{display:false}}
+  }
+});
+
+// ── TEMPO BAR ────────────────────────────────────
+new Chart('cTempo',{
+  type:'bar',
+  data:{
+    labels:['Medium (90–120)','Fast (120–150)','Very Fast (150+)','Slow (<90)'],
+    datasets:[{
+      data:[42,35,15,8],
+      backgroundColor:['#1ed760','#fb923c','#ef4444','#60a5fa'],
+      borderRadius:6,
+      barThickness:32
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:NL,
+    scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{grid:GRID}}
+  }
+});
+
+// ── KEY BAR ──────────────────────────────────────
+const KEYS=['C#','G#','F','C','B','A','F#','D','G','E','A#','D#'];
+const KVALS=[15,11,10,10,10,10,7,7,6,5,5,4];
+const KCOLS=['#1ed760','#60a5fa','#fb923c','#ef4444','#a78bfa','#34d399','#f472b6','#facc15','#1ed760','#60a5fa','#fb923c','#ef4444'];
+new Chart('cKey',{
+  type:'bar',
+  data:{labels:KEYS,datasets:[{data:KVALS,backgroundColor:KCOLS,borderRadius:5}]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:NL,
+    scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:GRID}}
+  }
+});
+
+// ── TOP 10 GROUPED ───────────────────────────────
+new Chart('cTop10',{
+  type:'bar',
+  data:{
+    labels:["God's Plan","SAD!","rockstar","Psycho","In My Feelings","Better Now","I Like It","One Kiss","IDGAF","FRIENDS"],
+    datasets:[
+      {label:'Danceability',data:[0.754,0.740,0.587,0.739,0.835,0.680,0.816,0.791,0.836,0.626],backgroundColor:'#1ed760',borderRadius:4},
+      {label:'Energy',      data:[0.449,0.613,0.535,0.559,0.626,0.563,0.726,0.862,0.544,0.880],backgroundColor:'#fb923c',borderRadius:4},
+      {label:'Valence',     data:[0.357,0.473,0.140,0.439,0.350,0.374,0.650,0.592,0.510,0.534],backgroundColor:'#f472b6',borderRadius:4}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{font:{size:10},boxWidth:10,color:'#7a7a85',padding:14}}},
+    scales:{
+      x:{grid:{display:false},ticks:{font:{size:8},maxRotation:30}},
+      y:{grid:GRID,min:0,max:1}
+    }
+  }
+});
+
+// ── ARTIST COUNT ─────────────────────────────────
+const ARTS =['XXXTENTACION','Post Malone','Drake','Marshmello','Ed Sheeran','The Weeknd','Selena Gomez','Ozuna','Migos','Maroon 5'];
+const ARTCNT=[6,6,4,3,3,2,2,2,2,2];
+const ARTCOLS=['#1ed760','#60a5fa','#fb923c','#ef4444','#a78bfa','#34d399','#f472b6','#facc15','#1ed760','#60a5fa'];
+new Chart('cArtCount',{
+  type:'bar',
+  data:{labels:ARTS,datasets:[{data:ARTCNT,backgroundColor:ARTCOLS,borderRadius:5}]},
+  options:{
+    responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:NL,
+    scales:{x:{grid:GRID,ticks:{font:{size:9}}},y:{grid:{display:false},ticks:{font:{size:10}}}}
+  }
+});
+
+// ── ARTIST DANCEABILITY ──────────────────────────
+const ARTD=[0.789,0.644,0.772,0.611,0.670,0.612,0.660,0.804,0.862,0.825];
+new Chart('cArtDance',{
+  type:'bar',
+  data:{labels:ARTS,datasets:[{data:ARTD,backgroundColor:ARTCOLS,borderRadius:5}]},
+  options:{
+    responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:NL,
+    scales:{x:{grid:GRID,min:0.5,max:0.95,ticks:{font:{size:9}}},y:{grid:{display:false},ticks:{font:{size:10}}}}
+  }
+});
+
+// ── ARTIST MULTI ─────────────────────────────────
+new Chart('cArtMulti',{
+  type:'bar',
+  data:{
+    labels:['XXXTENTACION','Post Malone','Drake','Marshmello','Ed Sheeran','Ozuna','Migos','Dua Lipa'],
+    datasets:[
+      {label:'Danceability',data:[0.789,0.644,0.772,0.611,0.670,0.804,0.862,0.799],backgroundColor:'#1ed760',borderRadius:4},
+      {label:'Energy',      data:[0.492,0.609,0.599,0.811,0.466,0.735,0.722,0.622],backgroundColor:'#fb923c',borderRadius:4},
+      {label:'Valence',     data:[0.526,0.362,0.471,0.497,0.485,0.591,0.452,0.559],backgroundColor:'#f472b6',borderRadius:4}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{font:{size:10},boxWidth:10,color:'#7a7a85',padding:12}}},
+    scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:GRID,min:0,max:1}}
+  }
+});
+
+// ── ALL FEATURES GROUPED ─────────────────────────
+// Sample 20 tracks
+new Chart('cAllFeatures',{
+  type:'bar',
+  data:{
+    labels:Array.from({length:20},(_,i)=>`#${i+1}`),
+    datasets:[
+      {label:'Danceability',data:[0.754,0.740,0.587,0.739,0.835,0.680,0.816,0.791,0.836,0.626,0.799,0.714,0.687,0.762,0.818,0.792,0.791,0.831,0.904,0.841],backgroundColor:'rgba(30,215,96,0.8)',borderRadius:3},
+      {label:'Energy',      data:[0.449,0.613,0.535,0.559,0.626,0.563,0.726,0.862,0.544,0.880,0.634,0.643,0.756,0.659,0.798,0.848,0.813,0.895,0.728,0.889],backgroundColor:'rgba(251,146,60,0.8)',borderRadius:3},
+      {label:'Valence',     data:[0.357,0.473,0.140,0.439,0.350,0.374,0.650,0.592,0.510,0.534,0.398,0.373,0.491,0.457,0.828,0.839,0.791,0.931,0.839,0.794],backgroundColor:'rgba(244,114,182,0.8)',borderRadius:3}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{font:{size:10},boxWidth:10,color:'#7a7a85',padding:12}}},
+    scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{grid:GRID,min:0,max:1}}
+  }
+});
+
+// ── SCATTER ──────────────────────────────────────
+new Chart('cScatter',{
+  type:'scatter',
+  data:{
+    datasets:[{
+      label:'Track',
+      data:[
+        {x:0.754,y:0.449},{x:0.740,y:0.613},{x:0.587,y:0.535},{x:0.739,y:0.559},
+        {x:0.835,y:0.626},{x:0.816,y:0.726},{x:0.791,y:0.862},{x:0.836,y:0.544},
+        {x:0.626,y:0.880},{x:0.792,y:0.895},{x:0.841,y:0.798},{x:0.814,y:0.813},
+        {x:0.801,y:0.795},{x:0.903,y:0.675},{x:0.931,y:0.761}
+      ],
+      backgroundColor:['#1ed760','#60a5fa','#fb923c','#ef4444','#a78bfa',
+                        '#34d399','#f472b6','#facc15','#1ed760','#60a5fa',
+                        '#fb923c','#ef4444','#a78bfa','#34d399','#f472b6'],
+      pointRadius:8,pointHoverRadius:11
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:GRID,title:{display:true,text:'Danceability',color:'#7a7a85',font:{size:10}},min:0.5,max:1.0},
+      y:{grid:GRID,title:{display:true,text:'Energy',color:'#7a7a85',font:{size:10}},min:0.3,max:1.0}
+    }
+  }
+});
+</script>
+</body>
+</html>
