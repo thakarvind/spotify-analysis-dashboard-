@@ -15,9 +15,14 @@ End-to-end data analysis of the Spotify Top 100 Tracks from 2018. The raw datase
 
 ## Dashboard Preview
 
-[spotify_dashboard.pdf](https://github.com/user-attachments/files/26136286/spotify_dashboard.pdf)
+<img width="1186" height="820" alt="Screenshot 2026-03-20 150622" src="https://github.com/user-attachments/assets/1e35a7c7-ce1c-4760-ad15-1a1d171a3ab5" />
 
----
+<img width="1193" height="822" alt="Screenshot 2026-03-20 150702" src="https://github.com/user-attachments/assets/cb60ff23-34ee-48a4-bddb-f200734c1863" />
+
+<img width="1191" height="819" alt="Screenshot 2026-03-20 150737" src="https://github.com/user-attachments/assets/d5224c1d-4d47-4e23-8ba8-efc32c31c9ae" />
+
+---<img width="1456" height="628" alt="Screenshot 2026-03-20 151729" src="https://github.com/user-attachments/assets/2208de2b-3df7-44fe-8fba-0dec680af544" />
+
 
 ## Repository Files
 
